@@ -1,0 +1,2 @@
+2027fcfbedb68a398ba3e1b78ec0a0e4d6bbbb4e272c5d85ee34b3e0a5642197  VibeVideoAI-Setup-0.1.0-arm64.exe
+51732bc6d96efc448c60c3bf63ce61de1c1b3918d828b86362e68ca217fb8c19  VibeVideoAI-Setup-0.1.0-x64.exe

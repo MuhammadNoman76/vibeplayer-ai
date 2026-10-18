@@ -1,0 +1,38 @@
+VibeVideo AI (VibePlayer with an AI scene filter) - third-party software notices
+=================================================================================
+
+VibePlayer plays media using LibVLC, the multimedia engine of VLC media player.
+
+LibVLC / VLC plugins (folder: libvlc\)
+  Copyright (C) the VideoLAN team and VLC authors - https://www.videolan.org
+  Licensed under the GNU Lesser General Public License v2.1 or later (LibVLC core);
+  some plugins are licensed under the GNU General Public License v2 or later.
+  Source code: https://code.videolan.org/videolan/vlc
+
+LibVLCSharp
+  Copyright (C) VideoLAN - https://code.videolan.org/videolan/LibVLCSharp
+  Licensed under the GNU Lesser General Public License v2.1 or later.
+
+Material Design icons
+  Copyright Google LLC - Licensed under the Apache License, Version 2.0.
+
+.NET runtime
+  Copyright (C) .NET Foundation and Contributors - Licensed under the MIT License.
+
+AI scene filter (VibeVideo AI)
+  Windows ML / ONNX Runtime / DirectML (Microsoft.Windows.AI.MachineLearning)
+    Copyright (C) Microsoft Corporation - ONNX Runtime is licensed under the MIT License;
+    DirectML and the Windows ML runtime under Microsoft's license terms shipped with the package.
+  NPU / GPU execution providers (for example Intel OpenVINO) are downloaded and updated by Windows
+    (Windows ML execution provider catalog); they are not part of this app.
+
+  Models (downloaded on first use, not included in this app):
+  CLIP ViT-B/32 image encoder - OpenAI, MIT License (https://github.com/openai/CLIP),
+    ONNX conversion from https://huggingface.co/Xenova/clip-vit-base-patch32.
+    The prompt embeddings in Assets\ai-prompts.json were computed with its text encoder.
+  NudeNet 3.4 detector (320n) - notAI-tech, https://github.com/notAI-tech/NudeNet,
+    licensed under the GNU Affero General Public License v3.0 (taken from the "nudenet" package on PyPI).
+    It is optional (Settings > AI scene filter > Extra nudity detector).
+
+VibePlayer is an independent project. It is not affiliated with or endorsed by
+VideoLAN or YouTube.

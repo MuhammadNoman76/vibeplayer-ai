@@ -1,0 +1,13 @@
+<Window x:Class="VibePlayer.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:interop="clr-namespace:VibePlayer.Interop"
+        Title="VibeVideo AI"
+        Width="1280" Height="760" MinWidth="400" MinHeight="280"
+        Background="Black"
+        WindowStartupLocation="CenterScreen"
+        UseLayoutRounding="True">
+    <Grid Background="Black">
+        <interop:VideoSurface x:Name="Video" />
+    </Grid>
+</Window>

@@ -1,0 +1,111 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    VibeVideo AI: VibePlayer plus an AI scene filter (finds nudity, sex and kissing scenes and skips them).
+    Two editions from one source:
+      net10.0-windows  Windows 10 / 11, self-contained (x64, x86 or ARM64 via -r win-...)
+      net48            Windows 7 SP1 / 8.1 (and newer), uses the .NET Framework 4.8 built into Windows
+    The AI filter needs 64-bit Windows 10 / 11 (x64 or ARM64); the other builds play video without it.
+  -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <!-- The Windows 10 SDK target lets the AI filter use Windows ML (NPU / GPU drivers delivered by Windows). -->
+    <TargetFrameworks>net10.0-windows10.0.19041.0;net48</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>VibeVideoAI</AssemblyName>
+    <RootNamespace>VibePlayer</RootNamespace>
+    <ApplicationIcon>Assets\VibePlayer.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+
+    <Version>0.1.0</Version>
+    <Product>VibeVideo AI</Product>
+    <Company>VibePlayer</Company>
+    <Description>VibeVideo AI - VibePlayer with an AI filter that skips nudity, sex and kissing scenes</Description>
+    <Copyright>Copyright © 2026</Copyright>
+
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' != 'net48'">
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <!-- Still runs on Windows 10 1809+; newer APIs are guarded at run time. -->
+    <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
+
+    <!-- Ship only the VLC engine that matches the app's CPU -->
+    <VlcWindowsX64Enabled>false</VlcWindowsX64Enabled>
+    <VlcWindowsX86Enabled>false</VlcWindowsX86Enabled>
+    <VlcWindowsArm64Enabled>false</VlcWindowsArm64Enabled>
+    <VlcWindowsX64Enabled Condition="'$(RuntimeIdentifier)' == 'win-x64'">true</VlcWindowsX64Enabled>
+    <VlcWindowsX86Enabled Condition="'$(RuntimeIdentifier)' == 'win-x86'">true</VlcWindowsX86Enabled>
+    <VlcWindowsArm64Enabled Condition="'$(RuntimeIdentifier)' == 'win-arm64'">true</VlcWindowsArm64Enabled>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net48'">
+    <!-- AnyCPU: runs as 64-bit on 64-bit Windows and as 32-bit on 32-bit Windows -->
+    <Prefer32Bit>false</Prefer32Bit>
+
+    <!-- Both engines; the installer only installs the one that matches the PC -->
+    <VlcWindowsX64Enabled>true</VlcWindowsX64Enabled>
+    <VlcWindowsX86Enabled>true</VlcWindowsX86Enabled>
+    <VlcWindowsArm64Enabled>false</VlcWindowsArm64Enabled>
+  </PropertyGroup>
+
+  <!--
+    The AI scene filter runs ONNX models through Windows ML (ONNX Runtime + DirectML, plus the NPU/GPU
+    execution providers Windows downloads for the PC: Intel OpenVINO, Qualcomm QNN, AMD Vitis AI ...).
+    Windows ML exists for x64 and ARM64 only.
+  -->
+  <PropertyGroup>
+    <VibeAi Condition="'$(TargetFramework)' != 'net48' and '$(RuntimeIdentifier)' != 'win-x86'">true</VibeAi>
+    <DefineConstants Condition="'$(VibeAi)' == 'true'">$(DefineConstants);VIBE_AI</DefineConstants>
+    <!-- Windows ML needs Windows 10 1903 or newer. -->
+    <SupportedOSPlatformVersion Condition="'$(VibeAi)' == 'true'">10.0.18362.0</SupportedOSPlatformVersion>
+  </PropertyGroup>
+
+  <!--
+    Which installer this build belongs to (x64, arm64, x86 or win7-8): the updater downloads the same edition.
+    build.ps1 passes -p:VibeEdition=...; otherwise it follows the target.
+  -->
+  <PropertyGroup>
+    <VibeEdition Condition="'$(VibeEdition)' == '' and '$(TargetFramework)' == 'net48'">win7-8</VibeEdition>
+    <VibeEdition Condition="'$(VibeEdition)' == '' and '$(RuntimeIdentifier)' == 'win-arm64'">arm64</VibeEdition>
+    <VibeEdition Condition="'$(VibeEdition)' == '' and '$(RuntimeIdentifier)' == 'win-x86'">x86</VibeEdition>
+    <VibeEdition Condition="'$(VibeEdition)' == ''">x64</VibeEdition>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AssemblyMetadata Include="Edition" Value="$(VibeEdition)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="LibVLCSharp" Version="3.10.1" />
+    <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.24" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(VibeAi)' == 'true'">
+    <PackageReference Include="Microsoft.Windows.AI.MachineLearning" Version="2.4.89" />
+  </ItemGroup>
+
+  <!-- Code that talks to ONNX Runtime / Windows ML is only built where they exist. -->
+  <ItemGroup Condition="'$(VibeAi)' != 'true'">
+    <Compile Remove="Core\Ai\Onnx\**" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
+    <PackageReference Include="System.Text.Json" Version="8.0.6" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.IO.Compression" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\VibePlayer.ico" />
+    <!-- CLIP text embeddings for the scene prompts (tools\ai\embed_prompts.py makes it). -->
+    <EmbeddedResource Include="Assets\ai-prompts.json" LogicalName="VibePlayer.ai-prompts.json" />
+    <Content Include="THIRD-PARTY-NOTICES.txt" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>
